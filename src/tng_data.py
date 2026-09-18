@@ -28,11 +28,21 @@ headers = {"api-key":api_key}
 
 with h5py.File("mwm31s_satcatalog.hdf5", 'r') as f:
     sat_ids = f['SubfindIDSat'][:]
-id = sat_ids[0] #first satelite z=0 id
-
+id = sat_ids[7] #first satellite z=0 id
 
 url = "http://www.tng-project.org/api/TNG50-1/snapshots/99/subhalos/" + str(id) + "/"
 halo = get(url)
+print(halo['mass'])
+
 
 cutout_request = {'dm':'Coordinates,Velocities'}
 cutout = get(url+"cutout.hdf5", cutout_request)
+
+with h5py.File(cutout, 'r') as f:
+    x = f['PartType1']['Coordinates'][:,0]
+    y = f['PartType1']['Coordinates'][:,1]
+    z = f['PartType1']['Coordinates'][:,2]
+
+    vx = f['PartType1']['Velocities'][:,0]
+    vy = f['PartType1']['Velocities'][:, 1]
+    vz = f['PartType1']['Velocities'][:,2]
