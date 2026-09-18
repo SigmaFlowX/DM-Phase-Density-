@@ -21,97 +21,98 @@ def get(path, params=None):
 
     return r
 
-baseUrl = 'http://www.tng-project.org/api/'
-headers = {"api-key":api_key}
+if "__name__" == "__main__":
+    baseUrl = 'http://www.tng-project.org/api/'
+    headers = {"api-key":api_key}
 
-r = get(baseUrl)
-name = "TNG50-1"
-sim_obj  = next((sim for sim in r['simulations'] if sim['name'] == name), None)
+    r = get(baseUrl)
+    name = "TNG50-1"
+    sim_obj  = next((sim for sim in r['simulations'] if sim['name'] == name), None)
 
-sim = get(sim_obj['url'])
+    sim = get(sim_obj['url'])
 
-snapshots = get(sim['snapshots'])
+    snapshots = get(sim['snapshots'])
 
-z0snapshot = get(snapshots[-1]['url'])
+    z0snapshot = get(snapshots[-1]['url'])
 
-subhalos = get(z0snapshot['subhalos'])
-
-
-halo = get(subhalos['results'][2]['url']) #first halo
-print(halo)
+    subhalos = get(z0snapshot['subhalos'])
 
 
-
-# mass history of this specific halo
-
-# m = [halo['mass']]
-# snaps = [halo['snap']]
-# for i in range(120):
-#     progenitor_url = halo['related']['sublink_progenitor']
-#     if progenitor_url:
-#         progenitor = get(progenitor_url)
-#     else:
-#         break
-#
-#     print(progenitor)
-#     m.append(progenitor['mass'])
-#     snaps.append(progenitor['snap'])
-#     halo = progenitor
-#
-#import matplotlib.pyplot as plt
-# plt.plot(snaps, m)
-# plt.xlabel("snap")
-# plt.ylabel("mass")
-# plt.grid()
-# plt.show()
-
-
-#Alternative method using main progenitor tree with only one request
-
-# mpb = get(halo['trees']['sublink_mpb'])
-#
-# import h5py
-#
-# with h5py.File(mpb,'r') as f:
-#     mass = f['Mass'][:]
-#     snap = f['SnapNum'][:]
-#
-# import matplotlib.pyplot as plt
-# plt.plot(snap, mass)
-# plt.show()
-
-
-# Visualization of the halo at z = 1
-import h5py
-import numpy as np
-
-mpb = get(halo['trees']['sublink_mpb'])
-
-with h5py.File(mpb,'r') as f:
-    snapnum = f['SnapNum'][:]
-    ids = f['SubfindID'][:]
-
-number = z0snapshot['number']
-
-i = np.where(snapnum==number)
-id = ids[i]
-
-
-cutout_request = {'dm':'Coordinates'}
-cutout = get(subhalos['results'][2]['url']+"cutout.hdf5", cutout_request)
+    halo = get(subhalos['results'][2]['url']) #first halo
+    print(halo)
 
 
 
-with h5py.File(cutout,'r') as f:
-    x = f['PartType1']['Coordinates'][:,0] - halo['pos_x']
-    y = f['PartType1']['Coordinates'][:,1] - halo['pos_y']
+    # mass history of this specific halo
+
+    # m = [halo['mass']]
+    # snaps = [halo['snap']]
+    # for i in range(120):
+    #     progenitor_url = halo['related']['sublink_progenitor']
+    #     if progenitor_url:
+    #         progenitor = get(progenitor_url)
+    #     else:
+    #         break
+    #
+    #     print(progenitor)
+    #     m.append(progenitor['mass'])
+    #     snaps.append(progenitor['snap'])
+    #     halo = progenitor
+    #
+    #import matplotlib.pyplot as plt
+    # plt.plot(snaps, m)
+    # plt.xlabel("snap")
+    # plt.ylabel("mass")
+    # plt.grid()
+    # plt.show()
 
 
-import matplotlib.pyplot as plt
-plt.hist2d(x,y,bins=[300,300])
-plt.xlabel('Delta x [ckpc/h]')
-plt.ylabel('Delta y [ckpc/h]')
-plt.show()
+    #Alternative method using main progenitor tree with only one request
+
+    # mpb = get(halo['trees']['sublink_mpb'])
+    #
+    # import h5py
+    #
+    # with h5py.File(mpb,'r') as f:
+    #     mass = f['Mass'][:]
+    #     snap = f['SnapNum'][:]
+    #
+    # import matplotlib.pyplot as plt
+    # plt.plot(snap, mass)
+    # plt.show()
+
+
+    # Visualization of the halo at z = 1
+    import h5py
+    import numpy as np
+
+    mpb = get(halo['trees']['sublink_mpb'])
+
+    with h5py.File(mpb,'r') as f:
+        snapnum = f['SnapNum'][:]
+        ids = f['SubfindID'][:]
+
+    number = z0snapshot['number']
+
+    i = np.where(snapnum==number)
+    id = ids[i]
+
+
+    cutout_request = {'dm':'Coordinates'}
+    cutout = get(subhalos['results'][2]['url']+"cutout.hdf5", cutout_request)
+
+
+
+    with h5py.File(cutout,'r') as f:
+        x = f['PartType1']['Coordinates'][:,0] - halo['pos_x']
+        y = f['PartType1']['Coordinates'][:,1] - halo['pos_y']
+
+
+    import matplotlib.pyplot as plt
+    plt.hist2d(x,y,bins=[300,300])
+    plt.xlabel('Delta x [ckpc/h]')
+    plt.ylabel('Delta y [ckpc/h]')
+    plt.show()
 
 
 
