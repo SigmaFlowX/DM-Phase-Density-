@@ -37,12 +37,13 @@ z0snapshot = get(snapshots[-1]['url'])
 subhalos = get(z0snapshot['subhalos'])
 
 
-halo = get(subhalos['results'][0]['url']) #first halo
+halo = get(subhalos['results'][2]['url']) #first halo
+print(halo)
 
 
 
+# mass history of this specific halo
 
-# #mass history of this specific halo
 # m = [halo['mass']]
 # snaps = [halo['snap']]
 # for i in range(120):
@@ -67,18 +68,53 @@ halo = get(subhalos['results'][0]['url']) #first halo
 
 #Alternative method using main progenitor tree with only one request
 
+# mpb = get(halo['trees']['sublink_mpb'])
+#
+# import h5py
+#
+# with h5py.File(mpb,'r') as f:
+#     mass = f['Mass'][:]
+#     snap = f['SnapNum'][:]
+#
+# import matplotlib.pyplot as plt
+# plt.plot(snap, mass)
+# plt.show()
+
+
+# Visualization of the halo at z = 1
+import h5py
+import numpy as np
+
 mpb = get(halo['trees']['sublink_mpb'])
 
-import h5py
-f = h5py.File(mpb, 'r')
-
-
 with h5py.File(mpb,'r') as f:
-    mass = f['Mass'][:]
-    snap = f['SnapNum'][:]
+    snapnum = f['SnapNum'][:]
+    ids = f['SubfindID'][:]
+
+number = z0snapshot['number']
+
+i = np.where(snapnum==number)
+id = ids[i]
+
+
+cutout_request = {'dm':'Coordinates'}
+cutout = get(subhalos['results'][2]['url']+"cutout.hdf5", cutout_request)
+
+
+
+with h5py.File(cutout,'r') as f:
+    x = f['PartType1']['Coordinates'][:,0] - halo['pos_x']
+    y = f['PartType1']['Coordinates'][:,1] - halo['pos_y']
 
 
 import matplotlib.pyplot as plt
-plt.plot(snap, mass)
+plt.hist2d(x,y,bins=[300,300])
+plt.xlabel('Delta x [ckpc/h]')
+plt.ylabel('Delta y [ckpc/h]')
 plt.show()
+
+
+
+
+
 
