@@ -12,6 +12,13 @@ def get(path, params=None):
 
     if r.headers['content-type'] == 'application/json':
         return r.json()
+
+    if 'content-disposition' in r.headers:
+        filename = r.headers['content-disposition'].split("filename=")[1]
+        with open(filename, 'wb') as f:
+            f.write(r.content)
+        return filename
+
     return r
 
 baseUrl = 'http://www.tng-project.org/api/'
@@ -30,32 +37,48 @@ z0snapshot = get(snapshots[-1]['url'])
 subhalos = get(z0snapshot['subhalos'])
 
 
-halo = get(subhalos['results'][80]['url']) #first halo
+halo = get(subhalos['results'][0]['url']) #first halo
 
 
 
 
-#mass history of this specific halo
-m = [halo['mass']]
-snaps = [halo['snap']]
-for i in range(100):
-    progenitor_url = halo['related']['sublink_progenitor']
-    if progenitor_url:
-        progenitor = get(progenitor_url)
-    else:
-        break
+# #mass history of this specific halo
+# m = [halo['mass']]
+# snaps = [halo['snap']]
+# for i in range(120):
+#     progenitor_url = halo['related']['sublink_progenitor']
+#     if progenitor_url:
+#         progenitor = get(progenitor_url)
+#     else:
+#         break
+#
+#     print(progenitor)
+#     m.append(progenitor['mass'])
+#     snaps.append(progenitor['snap'])
+#     halo = progenitor
+#
+#import matplotlib.pyplot as plt
+# plt.plot(snaps, m)
+# plt.xlabel("snap")
+# plt.ylabel("mass")
+# plt.grid()
+# plt.show()
 
-    print(progenitor)
-    m.append(progenitor['mass'])
-    snaps.append(progenitor['snap'])
-    halo = progenitor
+
+#Alternative method using main progenitor tree with only one request
+
+mpb = get(halo['trees']['sublink_mpb'])
+
+import h5py
+f = h5py.File(mpb, 'r')
+
+
+with h5py.File(mpb,'r') as f:
+    mass = f['Mass'][:]
+    snap = f['SnapNum'][:]
+
 
 import matplotlib.pyplot as plt
-plt.plot(snaps, m)
-plt.xlabel("snap")
-plt.ylabel("mass")
-plt.grid()
+plt.plot(snap, mass)
 plt.show()
-
-
 
